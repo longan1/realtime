@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <script src="./index1.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.5.0/socket.io.min.js"></script>
+
+    <script>
+      var socket = io("http://192.168.100.22:8080", {
+        transports: ["websocket"],
+      });
+
+      socket.on("Server-sent-data", function (data) {
+        draw(data.x, data.y);
+      });
+
+      function doSomeThing() {
+        const data = document.getElementById("text").value;
+      }
+
+      function draw(x, y) {
+        const el = document.getElementById("chat-box");
+        const para = document.createElement("div");
+        para.classList.add("ele");
+        el.appendChild(para);
+        para.style.transform = `translate(${x}px, ${y}px)`;
+      }
+
+      function runOnBoard() {
+        const el = document.getElementById("chat-box");
+        const elWidth = el.clientWidth;
+        const elHeight = el.clientHeight;
+        let x = 0;
+        let y = 0;
+        let point = 1;
+        let isIncrease = false;
+        const i = setInterval(() => {
+          if (point <= 50 * 10) {
+            if (x == elWidth - 10) {
+              isIncrease = true;
+              y += 10;
+            }
+
+            if (isIncrease) {
+              x = x - 10;
+              if (x == 0) {
+                isIncrease = false;
+                y += 10;
+              }
+            } else {
+              x = x + 10;
+            }
+            point++;
+            if (y == 500) {
+              clearInterval(i);
+            }
+
+            socket.emit("Client-sent-data", { x: x, y: y });
+          } else {
+            clearInterval(i);
+          }
+        }, 1000);
+      }
+    </script>
+
+    <style>
+      #chat-box {
+        width: 500px;
+        height: 500px;
+        border: 1px solid black;
+        margin: 0 auto;
+      }
+      .ele {
+        width: 10px;
+        height: 10px;
+        color: red;
+        background: red;
+        transition: all 0.2s;
+      }
+    </style>
+  </head>
+  <body>
+    <div>
+      <input type="text" name="" id="text" />
+      <button onclick="  runOnBoard()">Gui</button>
+    </div>
+
+    <div id="chat-box"></div>
+  </body>
+</html>
